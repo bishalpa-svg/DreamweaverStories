@@ -38,23 +38,19 @@ struct AppViews: View {
     let languages = ["English", "Spanish", "French", "German", "Italian", "Portuguese"]
     
     // MARK: - PRICING LOGIC (UPDATED)
+    // Now purely linear: 1 Credit per 10 Pages.
     var currentStoryCost: Int {
-        switch selectedPageCount {
-        case 10: return 1           // $1.00 Revenue (High Margin)
-        case 20, 25, 30: return 2   // $2.00 Revenue (75% Margin with 30% Tax)
-        case 40, 50: return 3       // $3.00 Revenue
-        default: return 2
-        }
+        return max(1, selectedPageCount / 10)
     }
 
     func targetImageCount(for pages: Int) -> Int {
         switch pages {
         case 10: return 3
         case 20: return 6
-        case 25: return 7
         case 30: return 9
         case 40: return 12
         case 50: return 15
+        case 100: return 25 // 25 Images for a massive story
         default: return max(1, pages / 4)
         }
     }
@@ -62,7 +58,6 @@ struct AppViews: View {
     // MARK: - MAIN BODY
     var body: some View {
         NavigationStack {
-            // FIX: Use GeometryReader to detect screen size
             GeometryReader { geo in
                 let isIPad = geo.size.width > 600
                 
@@ -76,17 +71,16 @@ struct AppViews: View {
                     .ignoresSafeArea()
 
                     ScrollView {
-                        VStack(spacing: isIPad ? 30 : 20) { // More spacing on iPad
+                        VStack(spacing: isIPad ? 30 : 20) {
                             headerSection(isIPad: isIPad)
                             avatarSection(isIPad: isIPad)
                             formSection(isIPad: isIPad)
                             actionButtons(isIPad: isIPad)
                         }
                         .padding()
-                        // FIX: Dynamic width based on device
-                        .frame(width: isIPad ? geo.size.width * 0.85 : nil) // 85% width on iPad
-                        .frame(maxWidth: isIPad ? 1000 : .infinity) // Cap it at 1000 for massive screens
-                        .frame(maxWidth: .infinity) // Center the column
+                        .frame(width: isIPad ? geo.size.width * 0.85 : nil)
+                        .frame(maxWidth: isIPad ? 1000 : .infinity)
+                        .frame(maxWidth: .infinity)
                     }
                 }
                 // MARK: - ALERTS & SHEETS
@@ -140,7 +134,7 @@ struct AppViews: View {
     func headerSection(isIPad: Bool) -> some View {
         HStack {
             Text("Dreamweaver Stories")
-                .font(.custom("Georgia-Italic", size: isIPad ? 40 : 24)) // Bigger font on iPad
+                .font(.custom("Georgia-Italic", size: isIPad ? 40 : 24))
                 .foregroundColor(.white)
             
             Spacer()
@@ -159,7 +153,7 @@ struct AppViews: View {
                 .cornerRadius(20)
                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.2), lineWidth: 1))
             }
-            .scaleEffect(isIPad ? 1.2 : 1.0) // Slightly larger button on iPad
+            .scaleEffect(isIPad ? 1.2 : 1.0)
         }
     }
 
@@ -171,7 +165,6 @@ struct AppViews: View {
                         LinearGradient(colors: [.yellow, .white, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing),
                         lineWidth: 2
                     )
-                    // Bigger avatar on iPad
                     .frame(width: isIPad ? 220 : 140, height: isIPad ? 220 : 140)
 
                 if let image = heroImage {
@@ -189,7 +182,6 @@ struct AppViews: View {
                 BoutiqueButton(title: "Camera", icon: "camera", fullWidth: true) { showCamera = true }
                 BoutiqueButton(title: "Upload", icon: "photo", fullWidth: true) { showPhotoLibrary = true }
             }
-            // Constrain width of buttons on massive iPad screens so they aren't comically wide
             .frame(maxWidth: isIPad ? 500 : nil)
         }
         .padding()
@@ -198,7 +190,6 @@ struct AppViews: View {
     }
 
     func formSection(isIPad: Bool) -> some View {
-        // Grid setup: Bigger items on iPad
         let adaptiveColumns = [GridItem(.adaptive(minimum: isIPad ? 160 : 100), spacing: 8)]
 
         return VStack(spacing: 12) {
@@ -206,11 +197,11 @@ struct AppViews: View {
             BoutiqueTextField(placeholder: "Theme (e.g Magical Castle)", text: $storyTheme, isIPad: isIPad)
             BoutiqueTextField(placeholder: "Moral / Insight (e.g Be kind)", text: $storyInsights, isIPad: isIPad)
 
-            // Page Count Grid
+            // Page Count Grid (UPDATED: 10, 20, 30, 40, 50, 100)
             VStack(alignment: .leading, spacing: 6) {
                 Text("Pages (Cost varies)").font(isIPad ? .body : .caption).foregroundColor(.white.opacity(0.7))
                 LazyVGrid(columns: adaptiveColumns, spacing: 8) {
-                    ForEach([10, 20, 25, 30, 40, 50], id: \.self) { count in
+                    ForEach([10, 20, 30, 40, 50, 100], id: \.self) { count in
                         Button { selectedPageCount = count } label: {
                             VStack(spacing: 2) {
                                 Text("\(count) Pgs")
@@ -251,12 +242,8 @@ struct AppViews: View {
 
     // Helper for grid display
     func costFor(_ pages: Int) -> String {
-        switch pages {
-        case 10: return "1 Credit"
-        case 20, 25, 30: return "2 Credits" // Visual Update for UI
-        case 40, 50: return "3 Credits"
-        default: return ""
-        }
+        let cost = max(1, pages / 10)
+        return "\(cost) Credit\(cost > 1 ? "s" : "")"
     }
 
     func actionButtons(isIPad: Bool) -> some View {
@@ -270,7 +257,6 @@ struct AppViews: View {
                 showSavedStories = true
             }
         }
-        // Keep buttons from getting too wide on iPad
         .frame(maxWidth: isIPad ? 600 : nil)
     }
 
@@ -305,7 +291,7 @@ struct AppViews: View {
         isGenerating = true
         currentIllustrationPage = 0
         
-        // 2. DEDUCT THE COST (1, 2, or 3)
+        // 2. DEDUCT THE COST
         creditManager.spendCredits(amount: cost)
         
         Task {
@@ -362,7 +348,7 @@ struct BoutiqueButton: View {
     let title: String
     let icon: String
     var fullWidth: Bool = false
-    var isIPad: Bool = false // New Param
+    var isIPad: Bool = false
     var action: () -> Void
 
     var body: some View {
@@ -372,13 +358,13 @@ struct BoutiqueButton: View {
                     ProgressView().tint(.white).padding(.trailing, 5)
                 }
                 Image(systemName: icon)
-                    .font(isIPad ? .title3 : .body) // Larger icon on iPad
+                    .font(isIPad ? .title3 : .body)
                 Text(title)
-                    .font(isIPad ? .headline : .caption2) // Larger font on iPad
+                    .font(isIPad ? .headline : .caption2)
                     .bold()
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, isIPad ? 20 : 12) // Taller button on iPad
+            .padding(.vertical, isIPad ? 20 : 12)
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .background(Color.white.opacity(0.15))
             .cornerRadius(10)
@@ -390,12 +376,12 @@ struct BoutiqueButton: View {
 struct BoutiqueTextField: View {
     let placeholder: String
     @Binding var text: String
-    var isIPad: Bool = false // New Param
+    var isIPad: Bool = false
 
     var body: some View {
         TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.white.opacity(0.3)).font(isIPad ? .body : .callout))
             .font(isIPad ? .body : .callout)
-            .padding(isIPad ? 18 : 12) // Bigger padding on iPad
+            .padding(isIPad ? 18 : 12)
             .background(Color.white.opacity(0.08))
             .cornerRadius(10)
             .foregroundColor(.white)
@@ -414,8 +400,6 @@ struct CameraPicker: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: CameraPicker
-        let imagePickerController: UIImagePickerController? = nil // Unused
-        
         init(_ parent: CameraPicker) { self.parent = parent }
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let img = info[.originalImage] as? UIImage { parent.image = img }
