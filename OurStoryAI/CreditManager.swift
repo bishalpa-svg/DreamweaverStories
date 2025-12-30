@@ -1,45 +1,45 @@
-import Foundation
 import SwiftUI
 import Combine
 
+@MainActor
 class CreditManager: ObservableObject {
+
     static let shared = CreditManager()
-    
-    @Published var currentCredits: Int = 0
-    
-    private let creditsKey = "user_credits_balance"
-    private let hasGivenWelcomeKey = "has_given_welcome_credits_v1"
-    
-    private init() {
-        let savedCredits = UserDefaults.standard.integer(forKey: creditsKey)
-        self.currentCredits = savedCredits
-        
-        if !UserDefaults.standard.bool(forKey: hasGivenWelcomeKey) {
-            self.currentCredits = 1
-            UserDefaults.standard.set(true, forKey: hasGivenWelcomeKey)
-            save()
+
+    @Published var currentCredits: Int {
+        didSet {
+            UserDefaults.standard.set(currentCredits, forKey: "userCredits")
         }
     }
-    
-    func save() {
-        UserDefaults.standard.set(currentCredits, forKey: creditsKey)
+
+    @Published var hasReceivedWelcomeGift: Bool {
+        didSet {
+            UserDefaults.standard.set(hasReceivedWelcomeGift, forKey: "hasReceivedWelcomeGift")
+        }
     }
-    
-    // NEW: Check if they have enough for a specific cost
+
+    private init() {
+        self.currentCredits = UserDefaults.standard.integer(forKey: "userCredits")
+        self.hasReceivedWelcomeGift = UserDefaults.standard.bool(forKey: "hasReceivedWelcomeGift")
+
+        if !hasReceivedWelcomeGift {
+            currentCredits += 1
+            hasReceivedWelcomeGift = true
+            print("🎁 Welcome Gift Added")
+        }
+    }
+
+    func addCredits(amount: Int) {
+        currentCredits += amount
+    }
+
     func canAfford(cost: Int) -> Bool {
         return currentCredits >= cost
     }
-    
-    // NEW: Spend a specific amount
+
     func spendCredits(amount: Int) {
-        if currentCredits >= amount {
-            currentCredits -= amount
-            save()
-        }
-    }
-    
-    func addCredits(amount: Int) {
-        currentCredits += amount
-        save()
+        guard currentCredits >= amount else { return }
+        currentCredits -= amount
     }
 }
+

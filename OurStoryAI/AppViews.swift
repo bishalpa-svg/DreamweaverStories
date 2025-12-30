@@ -4,7 +4,9 @@ import PhotosUI
 struct AppViews: View {
 
     @StateObject private var engine = StoryEngine()
-    @ObservedObject private var creditManager = CreditManager.shared
+
+    // ✅ CORRECT for singleton
+    @ObservedObject var creditManager = CreditManager.shared
 
     // MARK: - User Inputs
     @State private var heroName = ""
@@ -13,6 +15,7 @@ struct AppViews: View {
     @State private var selectedPageCount = 10
     @State private var selectedLanguage = "English"
     @State private var selectedVoice = "shimmer"
+
 
     // MARK: - Media
     @State private var heroImage: UIImage?

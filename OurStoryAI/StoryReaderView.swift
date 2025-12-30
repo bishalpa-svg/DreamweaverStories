@@ -5,7 +5,7 @@ struct StoryReaderView: View {
     let pages: [StoryPage]
     let heroImage: UIImage?
     var closeAction: () -> Void
-    var onSave: () -> Void // <--- NEW: Action to save from inside the reader
+    var onSave: () -> Void
     
     @Binding var selectedVoiceName: String
     
@@ -16,7 +16,8 @@ struct StoryReaderView: View {
     @State private var isDownloadingAudio = false
     @State private var currentAudioTask: Task<Void, Never>? = nil
     @State private var activeAudioDelegate: AudioDelegate?
-    @State private var hasSaved = false // To disable button after saving
+    @State private var hasSaved = false
+    @State private var showExportAlert = false
     
     let engine = StoryEngine()
 
@@ -45,7 +46,6 @@ struct StoryReaderView: View {
                     
                     // HEADER
                     HStack {
-                        // Close Button
                         Button(action: { stopEverything(); closeAction() }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.title)
@@ -54,7 +54,6 @@ struct StoryReaderView: View {
                         
                         Spacer()
                         
-                        // NEW: SAVE BUTTON (Top Right)
                         if pages[currentPageIndex].audioFilename == nil && !hasSaved {
                             Button(action: {
                                 onSave()
@@ -72,10 +71,19 @@ struct StoryReaderView: View {
                                 .foregroundColor(.white)
                             }
                         }
+                        
+                        Button(action: {
+                            saveWatermarkedStory()
+                        }) {
+                            Image(systemName: "square.and.arrow.down.fill")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding(.leading, 10)
                     }
                     .padding(.horizontal)
                     
-                    // VOICE MENU (Moved below header to save space)
+                    // VOICE MENU
                     if pages[currentPageIndex].audioFilename == nil {
                         HStack {
                             Spacer()
@@ -114,6 +122,12 @@ struct StoryReaderView: View {
                     }
                     .frame(maxHeight: 350)
                     .id(pages[currentPageIndex].imageURL)
+                    
+                    // WATERMARK BRANDING
+                    Text("Made with Dreamweaver Stories")
+                        .font(.caption.italic())
+                        .foregroundColor(.white.opacity(0.3))
+                        .padding(.top, 5)
 
                     // TEXT SCROLL
                     ScrollView {
@@ -162,6 +176,11 @@ struct StoryReaderView: View {
         }
         .onAppear { configureAudioSession() }
         .onChange(of: currentPageIndex) { _, _ in if isNarratorOn { playCloudVoice() } }
+        .alert("Saved to Photos", isPresented: $showExportAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("A watermarked copy of this story page has been saved to your Photo Library.")
+        }
     }
 
     func configureAudioSession() {
@@ -183,10 +202,8 @@ struct StoryReaderView: View {
                 if let filename = page.audioFilename,
                    let localURL = StoryStorageManager.shared.getAudioURL(named: filename),
                    let localData = try? Data(contentsOf: localURL) {
-                    print("Playing from Memory (FREE)")
                     audioData = localData
                 } else {
-                    print("Fetching from Cloud (PAID)")
                     audioData = try await engine.fetchAudio(text: page.text, voice: selectedVoiceName)
                 }
 
@@ -218,6 +235,19 @@ struct StoryReaderView: View {
         isAutoTurnOn = false
         isNarratorOn = false
     }
+    
+    @MainActor
+    func saveWatermarkedStory() {
+        let currentText = pages[currentPageIndex].text
+        let viewToExport = ExportableStoryView(storyContent: currentText)
+        let renderer = ImageRenderer(content: viewToExport)
+        renderer.scale = UIScreen.main.scale
+        
+        if let uiImage = renderer.uiImage {
+            UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+            showExportAlert = true
+        }
+    }
 }
 
 class AudioDelegate: NSObject, AVAudioPlayerDelegate {
@@ -225,4 +255,3 @@ class AudioDelegate: NSObject, AVAudioPlayerDelegate {
     init(onFinish: @escaping () -> Void) { self.onFinish = onFinish }
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) { onFinish() }
 }
-
