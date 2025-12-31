@@ -76,7 +76,7 @@ class StoreKitManager: ObservableObject {
     }
 }
 
-// MARK: - Fancy Marketing Logic
+// MARK: - Fancy Marketing Logic (Safe Wording)
 extension StoreKitManager {
     
     // 1. Marketing Names
@@ -91,19 +91,19 @@ extension StoreKitManager {
         }
     }
     
-    // 2. ✨ NEW: Catchy Descriptions ✨
+    // 2. Safe Descriptions (No False Promises)
     func marketingDescription(for productID: String) -> String {
         switch productID {
         case "com.navivagames.credits.3":
-            return "Perfect for a quick short story."
+            return "Great for trying out your first story."
         case "com.navivagames.credits.10":
-            return "Enough for a few engaging chapters."
+            return "Create engaging tales with more detail."
         case "com.navivagames.credits.25":
-            return "Best value for serious writers."
+            return "Ideal for frequent writers & bulky tales."
         case "com.navivagames.credits.50":
-            return "Deep dive into long-form content."
+            return "Deep dive into long-form adventures."
         case "com.navivagames.credits.100":
-            return "Ultimate access for endless adventures."
+            return "Maximum capacity for the avid storyteller."
         default:
             return "Unlock more magical stories."
         }
@@ -127,12 +127,12 @@ extension StoreKitManager {
         }
     }
     
-    // 4. Badges
+    // 4. Safe Badges
     func badge(for productID: String) -> String? {
         switch productID {
         case "com.navivagames.credits.25": return "POPULAR"
-        case "com.navivagames.credits.50": return "BEST VALUE"
-        case "com.navivagames.credits.100": return "ULTIMATE"
+        case "com.navivagames.credits.50": return "GREAT VALUE"
+        case "com.navivagames.credits.100": return "MAX PACK"
         default: return nil
         }
     }

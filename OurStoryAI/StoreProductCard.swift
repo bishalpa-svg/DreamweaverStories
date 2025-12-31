@@ -16,47 +16,49 @@ struct StoreProductCard: View {
                 manager.cardGradient(for: product.id)
                 
                 // 2. Glassmorphic Overlay
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(.ultraThinMaterial.opacity(0.3))
                 
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.white.opacity(0.3), lineWidth: 1)
                 
                 // 3. Sparkles for high tier items
-                if product.id.contains("25") || product.id.contains("50") || product.id.contains("100") {
+                if product.id.contains("50") || product.id.contains("100") {
                     SparkleEffect()
                 }
 
-                VStack(spacing: 6) {
+                VStack(spacing: 4) { // Tighter spacing
                     
                     // Marketing Title
                     Text(manager.marketingTitle(for: product.id))
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold, design: .rounded)) // Smaller font
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-                        .padding(.top, 12)
+                        .padding(.top, 10)
 
-                    // ✅ NEW LOCATION: BADGE
+                    // BADGE (Middle)
                     if let badge = manager.badge(for: product.id) {
                         Text(badge)
-                            .font(.system(size: 9, weight: .black))
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
+                            .font(.system(size: 8, weight: .black))
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 6)
                             .background(Color.white)
                             .foregroundColor(.black)
-                            .cornerRadius(8)
+                            .cornerRadius(6)
                             .shadow(radius: 2)
-                            .padding(.vertical, 2) // Add a little spacing
+                    } else {
+                        // Spacer to keep alignment if no badge
+                        Spacer().frame(height: 18)
                     }
 
                     // Catchy Description
                     Text(manager.marketingDescription(for: product.id))
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.9))
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
-                        .padding(.horizontal, 6)
+                        .padding(.horizontal, 4)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Spacer()
@@ -68,20 +70,19 @@ struct StoreProductCard: View {
 
                     // Price Pill
                     Text(product.displayPrice)
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .font(.system(size: 16, weight: .heavy, design: .rounded)) // Smaller price tag
                         .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
                         .background(Color.black.opacity(0.25))
-                        .cornerRadius(12)
-                        .padding(.bottom, 12)
+                        .cornerRadius(10)
+                        .padding(.bottom, 10)
                 }
-                // ✅ OLD BADGE LOCATION REMOVED FROM HERE
             }
-            .frame(height: 180)
-            .cornerRadius(20)
-            .scaleEffect(isPressed ? 0.95 : 1.0)
-            .offset(y: floatAnimation ? -2 : 2)
+            .frame(height: 145) // ✅ Reduced height to fit all on screen
+            .cornerRadius(16)
+            .scaleEffect(isPressed ? 0.96 : 1.0)
+            .offset(y: floatAnimation ? -1 : 1) // Subtle float
             .animation(.spring(response: 0.3), value: isPressed)
             .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: floatAnimation)
         }
@@ -91,6 +92,7 @@ struct StoreProductCard: View {
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
+        // Glow effect
         .modifier(PulsingGlow(active: product.id.contains("50") || product.id.contains("100")))
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...0.5)) {

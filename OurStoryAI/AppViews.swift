@@ -196,7 +196,7 @@ struct AppViews: View {
         let adaptiveColumns = [GridItem(.adaptive(minimum: isIPad ? 160 : 100), spacing: 8)]
 
         return VStack(spacing: 12) {
-            BoutiqueTextField(placeholder: "Hero Name (e.g Nava)", text: $heroName, isIPad: isIPad)
+            BoutiqueTextField(placeholder: "Hero Name (e.g Nava/Aviva, 7/5, Sis)", text: $heroName, isIPad: isIPad)
             BoutiqueTextField(placeholder: "Theme (e.g Magical Castle)", text: $storyTheme, isIPad: isIPad)
             BoutiqueTextField(placeholder: "Moral / Insight (e.g Be kind)", text: $storyInsights, isIPad: isIPad)
 

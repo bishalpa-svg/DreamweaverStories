@@ -2,7 +2,6 @@ import SwiftUI
 
 // ✨ A View that emits random floating sparkles
 struct SparkleEffect: View {
-    // Randomize initial state so they don't all pulse together
     @State private var animate = false
     
     var body: some View {
@@ -13,7 +12,6 @@ struct SparkleEffect: View {
                         .fill(Color.white)
                         .frame(width: CGFloat.random(in: 2...5))
                         .opacity(animate ? 0 : 1)
-                        // Random position within the view
                         .position(
                             x: CGFloat.random(in: 0...proxy.size.width),
                             y: CGFloat.random(in: 0...proxy.size.height)
@@ -29,11 +27,11 @@ struct SparkleEffect: View {
             }
         }
         .onAppear { animate = true }
-        .allowsHitTesting(false) // Let clicks pass through to the button
+        .allowsHitTesting(false)
     }
 }
 
-// ✨ A pulsing glow for the "Best Value" cards
+// ✨ A pulsing glow for the "Max Pack" cards
 struct PulsingGlow: ViewModifier {
     var active: Bool
     @State private var glow = false
